@@ -1,0 +1,31 @@
+name: tic
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.8
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  firebase_core: ^3.15.2
+  firebase_auth: ^5.1.4
+  cloud_firestore: ^5.6.12
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "icon/icon.png"
+
+flutter:
+  uses-material-design: true
