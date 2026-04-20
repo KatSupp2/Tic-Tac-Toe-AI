@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// ── Reuse your existing colors from main.dart ─────────────────────────────────
 const Color kBg        = Color(0xFF0F0305);
 const Color kBgCard    = Color(0xFF1A0508);
 const Color kBgDeep    = Color(0xFF2A0A10);
@@ -11,7 +10,6 @@ const Color kTextLight = Color(0xFFF0E6E6);
 const Color kTextMuted = Color(0xFF8A5A5A);
 const Color kTextBody  = Color(0xFFC8A0A0);
 
-// ── AI Priority Rules Data ────────────────────────────────────────────────────
 class _PriorityRule {
   final int tier;
   final String label;
@@ -27,9 +25,7 @@ const List<_PriorityRule> kPriorityRules = [
   _PriorityRule(5, 'FALLBACK','Select any remaining available cell when no better option exists.'),
 ];
 
-// ── AI Module Screen ──────────────────────────────────────────────────────────
 class AiModuleScreen extends StatelessWidget {
-  /// Pass the current board and last AI result from GameScreen.
   final List<String> board;
   final int? lastAiIndex;
   final String? lastAiReason;
@@ -97,7 +93,6 @@ class AiModuleScreen extends StatelessWidget {
     );
   }
 
-  // ── Header ─────────────────────────────────────────────────────────────────
   Widget _buildHeader(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -158,7 +153,6 @@ class AiModuleScreen extends StatelessWidget {
     );
   }
 
-  // ── Divider ────────────────────────────────────────────────────────────────
   Widget _buildDivider() {
     return Container(
         margin: const EdgeInsets.symmetric(vertical: 16),
@@ -166,7 +160,6 @@ class AiModuleScreen extends StatelessWidget {
         color: kBorder);
   }
 
-  // ── AI Active Badge ────────────────────────────────────────────────────────
   Widget _buildAiBadge() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -188,7 +181,6 @@ class AiModuleScreen extends StatelessWidget {
     );
   }
 
-  // ── Board State Row ────────────────────────────────────────────────────────
   Widget _buildBoardStateRow() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,7 +282,6 @@ class AiModuleScreen extends StatelessWidget {
     );
   }
 
-  // ── Priority Rules ─────────────────────────────────────────────────────────
   Widget _buildPriorityRules() {
     return Container(
       decoration: BoxDecoration(
@@ -381,7 +372,6 @@ class AiModuleScreen extends StatelessWidget {
     );
   }
 
-  // ── Decision Trace ─────────────────────────────────────────────────────────
   Widget _buildDecisionTrace() {
     final tier = _tierOf(lastAiReason);
     final hasData = lastAiReason != null && lastAiIndex != null;
@@ -446,7 +436,6 @@ class AiModuleScreen extends StatelessWidget {
     );
   }
 
-  // ── Section Label ──────────────────────────────────────────────────────────
   Widget _sectionLabel(String text) {
     return Text(text,
         style: const TextStyle(
@@ -457,7 +446,6 @@ class AiModuleScreen extends StatelessWidget {
   }
 }
 
-// ── Pulsing Dot Widget ────────────────────────────────────────────────────────
 class _PulseDot extends StatefulWidget {
   @override
   State<_PulseDot> createState() => _PulseDotState();
