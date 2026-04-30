@@ -3,10 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // Get current user
   User? get currentUser => _auth.currentUser;
 
-  // Listen to auth state changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
   // Sign up with email and password
@@ -54,12 +52,10 @@ class AuthService {
     }
   }
 
-  // Sign out
   Future<void> signOut() async {
     await _auth.signOut();
   }
 
-  // Reset password
   Future<String?> resetPassword(String email) async {
     try {
       if (email.isEmpty) {
@@ -72,7 +68,6 @@ class AuthService {
     }
   }
 
-  // Delete account
   Future<String?> deleteAccount() async {
     try {
       await _auth.currentUser?.delete();

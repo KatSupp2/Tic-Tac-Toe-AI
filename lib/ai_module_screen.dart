@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 
-const Color kBg        = Color(0xFF0F0305);
-const Color kBgCard    = Color(0xFF1A0508);
-const Color kBgDeep    = Color(0xFF2A0A10);
-const Color kBorder    = Color(0xFF6B1A22);
-const Color kCrimson   = Color(0xFF8B0000);
-const Color kGold      = Color(0xFFC8A800);
-const Color kTextLight = Color(0xFFF0E6E6);
-const Color kTextMuted = Color(0xFF8A5A5A);
-const Color kTextBody  = Color(0xFFC8A0A0);
+
+const Color kBg        = Color(0xFFFAF8F5);
+const Color kBgCard    = Color(0xFFFFFFFF);
+const Color kBgDeep    = Color(0xFFF2EDE9);
+const Color kBorder    = Color(0xFFE0D5CF);
+const Color kNavy      = Color(0xFF1C1C2E);
+const Color kGold      = Color(0xFFB8960C);
+const Color kGoldLight = Color(0xFFF5EDD0);
+const Color kTextDark  = Color(0xFF1C1C2E);
+const Color kTextMuted = Color(0xFF9E8E8E);
+const Color kTextBody  = Color(0xFF5C4F4F);
+const Color kAccentRed = Color(0xFFC0392B);
 
 class _PriorityRule {
   final int tier;
@@ -18,11 +21,11 @@ class _PriorityRule {
 }
 
 const List<_PriorityRule> kPriorityRules = [
-  _PriorityRule(1, 'WIN',     'Execute any available winning move immediately.'),
-  _PriorityRule(2, 'BLOCK',   "Block the player's potential winning move if no immediate win exists."),
-  _PriorityRule(3, 'CENTER',  'Prioritize the center cell — the most strategically valuable position.'),
-  _PriorityRule(4, 'CORNER',  'Occupy available corners to create multiple winning opportunities.'),
-  _PriorityRule(5, 'FALLBACK','Select any remaining available cell when no better option exists.'),
+  _PriorityRule(1, 'WIN',      'Execute any available winning move immediately.'),
+  _PriorityRule(2, 'BLOCK',    "Block the player's potential winning move if no immediate win exists."),
+  _PriorityRule(3, 'CENTER',   'Prioritize the center cell — the most strategically valuable position.'),
+  _PriorityRule(4, 'CORNER',   'Occupy available corners to create multiple winning opportunities.'),
+  _PriorityRule(5, 'FALLBACK', 'Select any remaining available cell when no better option exists.'),
 ];
 
 class AiModuleScreen extends StatelessWidget {
@@ -49,10 +52,10 @@ class AiModuleScreen extends StatelessWidget {
 
   String _tierOf(String? reason) {
     if (reason == null) return '—';
-    if (reason.startsWith('WIN'))      return 'WIN';
-    if (reason.startsWith('THREAT'))   return 'BLOCK';
-    if (reason.startsWith('STRATEGIC') && reason.contains('center')) return 'CENTER';
-    if (reason.startsWith('STRATEGIC') && reason.contains('corner')) return 'CORNER';
+    if (reason.startsWith('WIN'))                                      return 'WIN';
+    if (reason.startsWith('THREAT'))                                   return 'BLOCK';
+    if (reason.startsWith('STRATEGIC') && reason.contains('center'))  return 'CENTER';
+    if (reason.startsWith('STRATEGIC') && reason.contains('corner'))  return 'CORNER';
     return 'FALLBACK';
   }
 
@@ -60,126 +63,179 @@ class AiModuleScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kBg,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment(0, -1),
-            radius: 1.2,
-            colors: [Color(0xFF2A0A0F), kBg],
-          ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(context),
-                const SizedBox(height: 20),
-                _buildDivider(),
-                _buildAiBadge(),
-                const SizedBox(height: 16),
-                _buildBoardStateRow(),
-                const SizedBox(height: 16),
-                _buildPriorityRules(),
-                const SizedBox(height: 16),
-                _buildDecisionTrace(),
-                const SizedBox(height: 30),
-              ],
+      body: Stack(
+        children: [
+          // Subtle warm radial backdrop
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment(-0.8, -0.9),
+                  radius: 1.0,
+                  colors: [Color(0xFFFFF8ED), kBg],
+                ),
+              ),
             ),
           ),
-        ),
+
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(context),
+                  const SizedBox(height: 20),
+                  _buildStatusBadge(),
+                  const SizedBox(height: 18),
+                  _buildBoardStateRow(),
+                  const SizedBox(height: 18),
+                  _buildPriorityRules(),
+                  const SizedBox(height: 18),
+                  _buildDecisionTrace(),
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
+  // ── Header ─────────────────────────────────────────────────────────────────
+
   Widget _buildHeader(BuildContext context) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // Back button
         GestureDetector(
           onTap: () => Navigator.of(context).pop(),
           child: Container(
-            margin: const EdgeInsets.only(top: 4, right: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            decoration: BoxDecoration(border: Border.all(color: kBorder)),
-            child: const Text('←',
-                style: TextStyle(color: kGold, fontSize: 14)),
+            margin: const EdgeInsets.only(right: 14),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: kBgCard,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: kBorder),
+              boxShadow: [
+                BoxShadow(
+                  color: kNavy.withOpacity(0.06),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: const Icon(Icons.arrow_back_ios_new_rounded,
+                color: kNavy, size: 16),
           ),
         ),
+
+        // Icon badge
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: kNavy,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: kNavy.withOpacity(0.2),
+                blurRadius: 12,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: const Icon(Icons.memory_rounded,
+              color: Color(0xFFF5EDD0), size: 22),
+        ),
+        const SizedBox(width: 12),
+
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              decoration: const BoxDecoration(
-                border: Border(left: BorderSide(color: kGold, width: 3)),
-              ),
-              padding: const EdgeInsets.only(left: 10),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('AI MODULE',
-                      style: TextStyle(
-                          color: kTextLight,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 4,
-                          fontFamily: 'monospace')),
-                  SizedBox(height: 2),
-                  Text('DECISION ENGINE',
-                      style: TextStyle(
-                          color: kTextMuted,
-                          fontSize: 9,
-                          letterSpacing: 3,
-                          fontFamily: 'monospace')),
-                ],
+            const Text(
+              'AI Module',
+              style: TextStyle(
+                color: kTextDark,
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.3,
               ),
             ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(border: Border.all(color: kBorder)),
-              child: const Text('▸ ADVERSARIAL SEARCH',
-                  style: TextStyle(
-                      color: kGold,
-                      fontSize: 8,
-                      letterSpacing: 2,
-                      fontFamily: 'monospace')),
+            const SizedBox(height: 2),
+            Text(
+              'Decision Engine',
+              style: TextStyle(
+                color: kTextMuted,
+                fontSize: 12,
+                letterSpacing: 0.2,
+              ),
             ),
           ],
+        ),
+
+        const Spacer(),
+
+        // Adversarial chip
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: kGoldLight,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: kGold.withOpacity(0.4)),
+          ),
+          child: Text(
+            'Adversarial',
+            style: TextStyle(
+              color: kGold,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.2,
+            ),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildDivider() {
-    return Container(
-        margin: const EdgeInsets.symmetric(vertical: 16),
-        height: 1,
-        color: kBorder);
-  }
+  // ── Status Badge ───────────────────────────────────────────────────────────
 
-  Widget _buildAiBadge() {
+  Widget _buildStatusBadge() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-          color: kBgDeep, border: Border.all(color: kBorder)),
+        color: kBgCard,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: kBorder),
+        boxShadow: [
+          BoxShadow(
+            color: kNavy.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
       child: Row(
         children: [
           _PulseDot(),
           const SizedBox(width: 10),
-          const Text('NEURAL ENGINE ACTIVE — EVALUATING BOARD STATE',
-              style: TextStyle(
-                  color: kGold,
-                  fontSize: 9,
-                  letterSpacing: 1.5,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'monospace')),
+          const Text(
+            'Neural engine active — evaluating board state',
+            style: TextStyle(
+              color: kTextBody,
+              fontSize: 12.5,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.1,
+            ),
+          ),
         ],
       ),
     );
   }
+
+  // ── Board State Row ────────────────────────────────────────────────────────
 
   Widget _buildBoardStateRow() {
     return Row(
@@ -193,20 +249,17 @@ class AiModuleScreen extends StatelessWidget {
   }
 
   Widget _buildBoardStats() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-          color: kBgCard, border: Border.all(color: kBorder)),
+    return _card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionLabel('BOARD STATE'),
-          const SizedBox(height: 10),
-          _statRow('MOVE COUNT',   moveCount.toString().padLeft(2, '0'), gold: true),
-          _statRow('EMPTY CELLS',  _emptyCells.toString().padLeft(2, '0')),
-          _statRow('AI LAST CELL', lastAiIndex != null ? _posLabel(lastAiIndex!) : '—', gold: true),
-          _statRow('PLAYER MARKS', board.where((c) => c == 'X').length.toString()),
-          _statRow('AI MARKS',     board.where((c) => c == 'O').length.toString()),
+          _sectionLabel('Board State'),
+          const SizedBox(height: 12),
+          _statRow('Move count',   moveCount.toString().padLeft(2, '0'), gold: true),
+          _statRow('Empty cells',  _emptyCells.toString().padLeft(2, '0')),
+          _statRow('AI last cell', lastAiIndex != null ? _posLabel(lastAiIndex!) : '—', gold: true),
+          _statRow('Player marks', board.where((c) => c == 'X').length.toString()),
+          _statRow('AI marks',     board.where((c) => c == 'O').length.toString()),
         ],
       ),
     );
@@ -221,15 +274,13 @@ class AiModuleScreen extends StatelessWidget {
           Text(label,
               style: const TextStyle(
                   color: kTextMuted,
-                  fontSize: 9,
-                  letterSpacing: 1.5,
-                  fontFamily: 'monospace')),
+                  fontSize: 12,
+                  letterSpacing: 0.1)),
           Text(val,
               style: TextStyle(
-                  color: gold ? kGold : kTextLight,
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'monospace')),
+                  color: gold ? kGold : kTextDark,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700)),
         ],
       ),
     );
@@ -239,10 +290,23 @@ class AiModuleScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionLabel('GRID'),
-        const SizedBox(height: 8),
-        SizedBox(
-          width: 90,
+        _sectionLabel('Grid'),
+        const SizedBox(height: 10),
+        Container(
+          width: 96,
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: kBgCard,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: kBorder),
+            boxShadow: [
+              BoxShadow(
+                color: kNavy.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
           child: Column(
             children: List.generate(3, (row) {
               return Row(
@@ -251,24 +315,27 @@ class AiModuleScreen extends StatelessWidget {
                   final val = board[idx];
                   return Expanded(
                     child: Container(
-                      margin: const EdgeInsets.all(1.5),
-                      height: 26,
+                      margin: const EdgeInsets.all(2),
+                      height: 24,
                       decoration: BoxDecoration(
-                        color: kBgCard,
-                        border: Border.all(color: kBorder, width: 0.8),
+                        color: val == '' ? kBgDeep : kGoldLight.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(5),
+                        border: Border.all(
+                          color: val == '' ? kBorder : kGold.withOpacity(0.4),
+                          width: 0.8,
+                        ),
                       ),
                       alignment: Alignment.center,
                       child: Text(
                         val == '' ? '·' : val,
                         style: TextStyle(
                           color: val == 'X'
-                              ? kCrimson
+                              ? kAccentRed
                               : val == 'O'
                               ? kGold
                               : kBorder,
                           fontSize: val == '' ? 8 : 12,
                           fontWeight: FontWeight.w900,
-                          fontFamily: 'monospace',
                         ),
                       ),
                     ),
@@ -282,18 +349,15 @@ class AiModuleScreen extends StatelessWidget {
     );
   }
 
+  // ── Priority Rules ─────────────────────────────────────────────────────────
+
   Widget _buildPriorityRules() {
-    return Container(
-      decoration: BoxDecoration(
-          color: kBgCard, border: Border.all(color: kBorder)),
+    return _card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-            child: _sectionLabel('AI PRIORITY RULES'),
-          ),
-          Container(height: 1, color: kBgDeep),
+          _sectionLabel('AI Priority Rules'),
+          const SizedBox(height: 14),
           ...kPriorityRules.map((rule) => _buildRuleItem(rule)),
         ],
       ),
@@ -303,28 +367,38 @@ class AiModuleScreen extends StatelessWidget {
   Widget _buildRuleItem(_PriorityRule rule) {
     final isActive = _tierOf(lastAiReason) == rule.label;
     return Container(
+      margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        border: const Border(bottom: BorderSide(color: kBgDeep)),
-        color: isActive ? const Color(0xFF1F0508) : Colors.transparent,
+        color: isActive ? kGoldLight : kBgDeep,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: isActive ? kGold.withOpacity(0.5) : kBorder,
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Tier badge
           Container(
-            width: 22,
-            height: 22,
-            margin: const EdgeInsets.only(top: 1),
+            width: 26,
+            height: 26,
             decoration: BoxDecoration(
-              color: isActive ? kCrimson : kBgDeep,
-              border: Border.all(color: isActive ? kGold : kBorder),
+              color: isActive ? kGold : kBgCard,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: isActive ? kGold : kBorder,
+              ),
             ),
             alignment: Alignment.center,
-            child: Text('${rule.tier}',
-                style: TextStyle(
-                    color: isActive ? kGold : kGold,
-                    fontSize: 9,
-                    fontFamily: 'monospace')),
+            child: Text(
+              '${rule.tier}',
+              style: TextStyle(
+                color: isActive ? Colors.white : kTextMuted,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -333,37 +407,45 @@ class AiModuleScreen extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(rule.label,
-                        style: TextStyle(
-                            color: isActive ? kGold : kTextMuted,
-                            fontSize: 8,
-                            letterSpacing: 2,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'monospace')),
+                    Text(
+                      rule.label,
+                      style: TextStyle(
+                        color: isActive ? kGold : kTextBody,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
                     if (isActive) ...[
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 5, vertical: 1),
-                        decoration:
-                        BoxDecoration(border: Border.all(color: kGold)),
-                        child: const Text('ACTIVE',
-                            style: TextStyle(
-                                color: kGold,
-                                fontSize: 6,
-                                letterSpacing: 1.5,
-                                fontFamily: 'monospace')),
-                      )
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: kGold,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'Active',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
                     ],
                   ],
                 ),
-                const SizedBox(height: 3),
-                Text(rule.description,
-                    style: const TextStyle(
-                        color: kTextBody,
-                        fontSize: 11,
-                        height: 1.5,
-                        fontFamily: 'monospace')),
+                const SizedBox(height: 4),
+                Text(
+                  rule.description,
+                  style: const TextStyle(
+                    color: kTextMuted,
+                    fontSize: 12,
+                    height: 1.5,
+                  ),
+                ),
               ],
             ),
           ),
@@ -372,35 +454,40 @@ class AiModuleScreen extends StatelessWidget {
     );
   }
 
+  // ── Decision Trace ─────────────────────────────────────────────────────────
+
   Widget _buildDecisionTrace() {
     final tier = _tierOf(lastAiReason);
     final hasData = lastAiReason != null && lastAiIndex != null;
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-          color: kBgCard, border: Border.all(color: kBorder)),
+    return _card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionLabel('LAST DECISION TRACE'),
-          const SizedBox(height: 12),
+          _sectionLabel('Last Decision Trace'),
+          const SizedBox(height: 14),
           if (!hasData)
-            const Text('— NO MOVE RECORDED YET —',
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              alignment: Alignment.center,
+              child: Text(
+                'No move recorded yet',
                 style: TextStyle(
-                    color: kTextMuted,
-                    fontSize: 10,
-                    letterSpacing: 2,
-                    fontFamily: 'monospace'))
+                  color: kTextMuted,
+                  fontSize: 13,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            )
           else ...[
-            _traceRow('REASON',       lastAiReason ?? '—'),
-            _traceRow('TARGET CELL',  _posLabel(lastAiIndex!), gold: true),
-            _traceRow('STRATEGY TIER', tier,
+            _traceRow('Reason',         lastAiReason ?? '—'),
+            _traceRow('Target cell',    _posLabel(lastAiIndex!), gold: true),
+            _traceRow('Strategy tier',  tier,
                 color: tier == 'WIN'
                     ? kGold
                     : tier == 'BLOCK'
-                    ? const Color(0xFFFF6060)
-                    : kTextLight),
+                    ? kAccentRed
+                    : kTextDark),
           ],
         ],
       ),
@@ -410,7 +497,7 @@ class AiModuleScreen extends StatelessWidget {
   Widget _traceRow(String label, String val,
       {bool gold = false, Color? color}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 7),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -419,32 +506,57 @@ class AiModuleScreen extends StatelessWidget {
             child: Text(label,
                 style: const TextStyle(
                     color: kTextMuted,
-                    fontSize: 9,
-                    letterSpacing: 1.5,
-                    fontFamily: 'monospace')),
+                    fontSize: 12,
+                    letterSpacing: 0.1)),
           ),
           Expanded(
             child: Text(val,
                 style: TextStyle(
-                    color: color ?? (gold ? kGold : kTextLight),
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'monospace')),
+                    color: color ?? (gold ? kGold : kTextDark),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700)),
           ),
         ],
       ),
     );
   }
 
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
+  Widget _card({required Widget child}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: kBgCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: kBorder),
+        boxShadow: [
+          BoxShadow(
+            color: kNavy.withOpacity(0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
   Widget _sectionLabel(String text) {
-    return Text(text,
-        style: const TextStyle(
-            color: kTextMuted,
-            fontSize: 8,
-            letterSpacing: 2.5,
-            fontFamily: 'monospace'));
+    return Text(
+      text,
+      style: const TextStyle(
+        color: kTextBody,
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.1,
+      ),
+    );
   }
 }
+
+// ── Pulse Dot ─────────────────────────────────────────────────────────────────
 
 class _PulseDot extends StatefulWidget {
   @override
@@ -462,7 +574,9 @@ class _PulseDotState extends State<_PulseDot>
     _ctrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 1200))
       ..repeat(reverse: true);
-    _anim = Tween<double>(begin: 0.2, end: 1.0).animate(_ctrl);
+    _anim = Tween<double>(begin: 0.25, end: 1.0).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
+    );
   }
 
   @override
